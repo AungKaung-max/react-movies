@@ -3,6 +3,8 @@ import Search from "./components/Search.jsx";
 import Spinner from "./components/Spinner.jsx";
 import MovieCard from "./components/MovieCard.jsx";
 import {useDebounce} from "react-use";
+import {updateSearchCount, getTrendingMovies} from "./appwrite.js";
+
 
 const API_BASE_URL = 'https://api.themoviedb.org';
 const API_KEY = import.meta.env.VITE_TMDB_API_TOKEN;
@@ -22,13 +24,13 @@ const App = () => {
 
     useDebounce(() => {
         setDebounded(SearchTerm)
-    },500,[SearchTerm])
+    }, 500, [SearchTerm])
 
-    const fetchMovies = async (SearchTerm = '') => {
+    const fetchMovies = async (query = '') => {
         isLoading(true);
         setError('');
         try {
-            const endpoint = SearchTerm ? `${API_BASE_URL}/3/search/movie?query=${encodeURIComponent(SearchTerm)}` :
+            const endpoint = query ? `${API_BASE_URL}/3/search/movie?query=${encodeURIComponent(SearchTerm)}` :
 
                 `${API_BASE_URL}/3/discover/movie?sort_by=popularity.desc`;
 
@@ -37,10 +39,10 @@ const App = () => {
             console.log(response)
 
             if (!response.ok) {
-              throw new Error("Error fetching movie");
+                throw new Error("Error fetching movie");
             }
             const data = await response.json();
-            console.log(data);
+
             if (data.Response === 'False') {
                 setError(data.Error || 'Failed to fetch movies');
                 setMovieList([])
