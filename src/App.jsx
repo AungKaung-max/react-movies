@@ -3,7 +3,8 @@ import Search from "./components/Search.jsx";
 import Spinner from "./components/Spinner.jsx";
 import MovieCard from "./components/MovieCard.jsx";
 import {useDebounce} from "react-use";
-import {updateSearchCount, getTrendingMovies} from "./appwrite.js";
+import {getTrendingMovies, updateSearchCount} from "./appwrite.js";
+
 
 
 const API_BASE_URL = 'https://api.themoviedb.org';
@@ -44,7 +45,7 @@ const App = () => {
             }
             const data = await response.json();
 
-            // console.log("data", data);
+            console.log("data", data);
 
             if (data.Response === 'False') {
                 setError(data.Error || 'Failed to fetch movies');
@@ -52,8 +53,8 @@ const App = () => {
                 return;
             }
             setMovieList(data.results || []);
-            if(query && data.results.length > 0) {
-                await updateSearchCount(query,data.results[0]);
+            if (query && data.results.length > 0) {
+                await updateSearchCount(query, data.results[0]);
             }
         } catch (error) {
             console.log(`Error fetching movies: ${error.message}`);
@@ -64,7 +65,7 @@ const App = () => {
     }
 
     const loadTrendingMovie = async () => {
-        try{
+        try {
             const movies = await getTrendingMovies();
             setTrendingMovies(movies);
         } catch (error) {
@@ -78,7 +79,7 @@ const App = () => {
 
     useEffect(() => {
         loadTrendingMovie()
-    },[])
+    }, [])
     return (<main>
         <div className="pattern">
             <div className="wrapper">
@@ -88,20 +89,15 @@ const App = () => {
                     <Search SearchTerm={SearchTerm} setSearchTerm={setSearchTerm}/>
                 </header>
 
-                {trendingMovies.length> 0 && (
-                    <section className="trending">
+                {trendingMovies.length > 0 && (<section className="trending">
                         <h2>Trending Movies</h2>
                         <ul>
-                            {trendingMovies.map((movie,index)=>(
-                                <li key={movie.$id}>
+                            {trendingMovies.map((movie, index) => (<li key={movie.$id}>
                                     <p>{index + 1}</p>
                                     <img src={movie.poster_url ? movie.poster_url : '/no-movie.png'} alt="movie.title"/>
-                                </li>
-                            ))}
+                                </li>))}
                         </ul>
-                    </section>
-                )
-                }
+                    </section>)}
 
                 <section className="all-movies">
                     <h2>All Movies</h2>
@@ -111,8 +107,11 @@ const App = () => {
                             {movieList.map((movie) => (<MovieCard movie={movie} key={movie.id}/>))}
                         </ul>)}
                 </section>
+
+
             </div>
         </div>
+
     </main>);
 };
 
