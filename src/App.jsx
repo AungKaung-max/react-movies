@@ -21,6 +21,7 @@ const App = () => {
     const [movieList, setMovieList] = useState([]);
     const [loading, isLoading] = useState(false);
     const [debounded, setDebounded] = useState('');
+    const [trendingMovies, setTrendingMovies] = useState([]);
 
     useDebounce(() => {
         setDebounded(SearchTerm)
@@ -36,19 +37,24 @@ const App = () => {
 
             const response = await fetch(endpoint, API_OPTIONS);
 
-            console.log(response)
+            // console.log(response)
 
             if (!response.ok) {
                 throw new Error("Error fetching movie");
             }
             const data = await response.json();
 
+            // console.log("data", data);
+
             if (data.Response === 'False') {
                 setError(data.Error || 'Failed to fetch movies');
                 setMovieList([])
                 return;
             }
-            setMovieList(data.results);
+            setMovieList(data.results || []);
+            if(query && data.results.length > 0) {
+                await updateSearchCount(query,data.results[0]);
+            }
         } catch (error) {
             console.log(`Error fetching movies: ${error.message}`);
             setError(error.message || "Please use vpn to see movies!");
@@ -57,9 +63,22 @@ const App = () => {
         }
     }
 
+    const loadTrendingMovie = async () => {
+        try{
+            const movies = await getTrendingMovies();
+            setTrendingMovies(movies);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
         fetchMovies(debounded)
     }, [debounded])
+
+    useEffect(() => {
+        loadTrendingMovie()
+    },[])
     return (<main>
         <div className="pattern">
             <div className="wrapper">
@@ -68,6 +87,21 @@ const App = () => {
                     <h1>Find<span className='text-gradient'>Movies</span>You'll Enjoy Without the Hassle</h1>
                     <Search SearchTerm={SearchTerm} setSearchTerm={setSearchTerm}/>
                 </header>
+
+                {trendingMovies.length> 0 && (
+                    <section className="trending">
+                        <h2>Trending Movies</h2>
+                        <ul>
+                            {trendingMovies.map((movie,index)=>(
+                                <li key={movie.id}>
+                                    <p>{index + 1}</p>
+                                    <img src={movie.poster_url} alt="movie.title"/>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )
+                }
 
                 <section className="all-movies">
                     <h2>All Movies</h2>
